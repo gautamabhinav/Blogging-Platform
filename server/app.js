@@ -36,9 +36,29 @@ app.use(
 app.use(morgan("dev"));
 app.use(cookieParser());
 
-// For __dirname in ES modules
+// import path from "path";
+// import { fileURLToPath } from "url";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Serve frontend in production
+if (process.env.NODE_ENV === "production") {
+  const frontendPath = path.join(__dirname, "../client/dist");
+  app.use(express.static(frontendPath));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(frontendPath, "index.html"));
+  });
+}
+
+
+
+
+
+// For __dirname in ES modules
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 // ------------------- Routes -------------------
 app.get("/ping", (_req, res) => {
@@ -53,10 +73,10 @@ app.use("/api/v1/category", categoryRoutes);
 
 // const path = require("path");
 
-app.use(express.static(path.join(__dirname, "../client/build")));
+app.use(express.static(path.join(__dirname, "../client/dist")));
 
 app.use( (_req, res) => {
-  res.sendFile(path.resolve(__dirname, "../client/build", "index.html"));
+  res.sendFile(path.resolve(__dirname, "../client/dist", "index.html"));
 });
 
 // ------------------- Socket.IO -------------------
