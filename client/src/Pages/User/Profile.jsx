@@ -114,7 +114,7 @@ const Profile = () => {
                   </div>
                 </div>
 
-                <div className="bg-zinc-800/60 p-4 rounded-md">
+                {/* <div className="bg-zinc-800/60 p-4 rounded-md">
                   <div className="flex items-center gap-3">
                     <FiLock className="text-yellow-400" />
                     <div>
@@ -122,7 +122,7 @@ const Profile = () => {
                       <div className="font-medium capitalize">{userData?.subscription?.status || "inactive"}</div>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="bg-zinc-800/60 p-4 rounded-md">
                   <div className="flex items-center gap-3">

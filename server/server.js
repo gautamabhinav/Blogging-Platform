@@ -1,7 +1,7 @@
 import { v2 } from 'cloudinary';
 
 
-import app from './app.js';
+import {app} from './app.js';
 import connectToDB from './configs/dbConn.js';
 
 const port = process.env.PORT || 10000;
@@ -36,8 +36,17 @@ v2.config({
 //   res.sendFile(path.join(__dirname, "build", "index.html"));
 // });
 
-app.listen(port, async () => {
-  // Connect to DB
-  await connectToDB();
-  console.log(`App is running at http://localhost:${port}`);
+import { server } from "./app.js";
+
+// const PORT = process.env.PORT || 5014;
+server.listen(port, async() => {
+  await connectToDB();  // Connect to MongoDB database
+  console.log(`🚀 Server running on http://localhost:${port}`);
 });
+
+
+// app.listen(port, async () => {
+//   // Connect to DB
+//   await connectToDB();
+//   console.log(`App is running at http://localhost:${port}`);
+// });

@@ -7,6 +7,13 @@ import asyncHandler from "./asyncHandler.middleware.js";
 export const isLoggedIn = asyncHandler(async (req, _res, next) => {
   // extracting token from the cookies
   const { token } = req.cookies;
+  // let token = req.cookies?.token;
+
+  
+  // // also allow Bearer token in Authorization header
+  // if (!token && req.headers.authorization?.startsWith("Bearer")) {
+  //   token = req.headers.authorization.split(" ")[1];
+  // }
 
   // If no token send unauthorized message
   if (!token) {
@@ -23,6 +30,9 @@ export const isLoggedIn = asyncHandler(async (req, _res, next) => {
 
   // If all good store the id in req object, here we are modifying the request object and adding a custom field user in it
   req.user = decoded;
+
+  // If all good store the id in req object
+  // req.user = { _id: decoded.id, role: decoded.role };
 
   // Do not forget to call the next other wise the flow of execution will not be passed further
   next();

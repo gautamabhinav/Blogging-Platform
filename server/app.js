@@ -1,79 +1,114 @@
-import cookieParser from 'cookie-parser';
-config();
-import express from 'express';
-import { config } from 'dotenv';
-import cors from 'cors';
-import morgan from 'morgan';
-import errorMiddleware from './middlewares/error.middleware.js';
+import express from "express";
+import http from "http";
+import { config } from "dotenv";
+import cors from "cors";
+import morgan from "morgan";
+import cookieParser from "cookie-parser";
+import { Server } from "socket.io";
 import path from "path";
+import { fileURLToPath } from "url";
 
-// Import all routes
-import userRoutes from './routes/user.routes.js';
-import adminRoutes from './routes/admin.routes.js'
-import superadminRoutes from './routes/superadmin.routes.js'
-import blogRoutes from './routes/blog.routes.js';
-import CategoryRoute from './routes/category.routes.js';
-import likeRoutes from './routes/like.routes.js';
-import contactRoute from './routes/contact.routes.js';
-import statsRoute from './routes/stats.routes.js';
-import commentRoutes from './routes/comment.routes.js'
+import errorMiddleware from "./middlewares/error.middleware.js";
+
+// Load env first
+config();
+
+// Import routes
+import userRoutes from "./routes/user.routes.js";
+import blogRoutes from "./routes/blog.routes.js";
+import categoryRoutes from "./routes/category.routes.js";
+
+import contactRoute from "./routes/contact.routes.js";
+import statsRoute from "./routes/stats.routes.js";
 
 
-// import miscRoutes from './routes/miscellaneous.routes.js';
-
+import Comment from "./models/comment.model.js";
 
 const app = express();
 
-// Middlewares
-// Built-In
+// ------------------- Middlewares -------------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// Third-Party
 app.use(
   cors({
     origin: [process.env.FRONTEND_URL],
     credentials: true,
   })
 );
-app.use(morgan('dev'));
+app.use(morgan("dev"));
 app.use(cookieParser());
 
-const _dirname = path.resolve();
+// For __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-
-
-
-// Server Status Check Route
-app.get('/ping', (_req, res) => {
-  res.send('Pong');
+// ------------------- Routes -------------------
+app.get("/ping", (_req, res) => {
+  res.send("Pong");
 });
 
+app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/posts", blogRoutes);
+app.use("/api/v1/contact", contactRoute);
+app.use("/api/v1/stats", statsRoute);
+app.use("/api/v1/category", categoryRoutes);
 
+// ------------------- Socket.IO -------------------
+const server = http.createServer(app);
 
-app.use('/api/v1/user', userRoutes);
-app.use('/api/v1/admin', adminRoutes);
-app.use('/api/v1/superadmin', superadminRoutes);
-app.use('/api/v1/posts', blogRoutes);
-app.use('/api/v1/contact', contactRoute);
-app.use('/api/v1/stats', statsRoute);
-// app.use('/api/v1', miscRoutes);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "*",
+    methods: ["GET", "POST"],
+  },
+});
 
-// app.use('/api/v1/blogLikes', BlogLikeRoute);
-app.use('/api/v1/category', CategoryRoute);
-app.use("/api/v1/likes", likeRoutes);
-app.use("/api/v1/comments", commentRoutes )
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
 
-// Default catch all route - 404
+  socket.on("join_blog", (blogId) => {
+    socket.join(blogId);
+    console.log(`User ${socket.id} joined blog room ${blogId}`);
+  });
+
+  socket.on("new_comment", async ({ blogId, userId, comment, parentId }) => {
+    try {
+      const newComment = new Comment({
+        blogId,
+        user: userId,
+        comment,
+        parentId: parentId || null,
+      });
+      await newComment.save();
+
+      const populated = await newComment.populate("user", "name avatar");
+
+      io.to(blogId).emit("comment_added", populated);
+    } catch (err) {
+      socket.emit("error", { message: err.message });
+    }
+  });
+
+  socket.on("delete_comment", async ({ blogId, commentId }) => {
+    try {
+      await Comment.findByIdAndDelete(commentId);
+      io.to(blogId).emit("comment_deleted", commentId);
+    } catch (err) {
+      socket.emit("error", { message: err.message });
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
+
+// ------------------- Fallbacks -------------------
 app.use((_req, res) => {
-  res.status(404).send('OOPS!!! 404 Page Not Found');
+  res.status(404).send("OOPS!!! 404 Page Not Found");
 });
 
-// Custom error handling middleware
 app.use(errorMiddleware);
 
-// app.use(express.static(path.join(_dirname, "/client/build")));
-// app.get('*', (_,res) => {
-//   res.sendFile(path.resolve(_dirname, "client", "build", "index.html"));
-// });
-
-export default app;
+// ------------------- Export server -------------------
+export { app, server };
