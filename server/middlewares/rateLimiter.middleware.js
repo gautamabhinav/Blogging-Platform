@@ -166,11 +166,23 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import { createClient } from 'redis';
 
+
+const redisUrl = process.env.REDIS_URL;
+
+if (!redisUrl) {
+  throw new Error("❌ REDIS_URL is not defined in environment variables");
+}
+
 // Create Redis client
 const redisClient = createClient({
+  url: redisUrl,
   socket: {
-    host: process.env.HOST || '127.0.0.1',
-    port: process.env.REDISPORT || 6379,
+    tls: true,                // Required for Upstash
+    tls: redisUrl.startsWith("rediss://"), // enable TLS only if needed
+    rejectUnauthorized: false, // Prevents SSL issues
+
+    // host: process.env.HOST || '127.0.0.1',
+    // port: process.env.REDISPORT || 6379,
   },
 });
 
@@ -241,6 +253,79 @@ export const userLimiter = rateLimit({
     });
   },
 });
+
+
+// import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+// import RedisStore from "rate-limit-redis";
+// import { createClient } from "redis";
+
+// // ---------------- Redis Client ----------------
+// const redisClient = createClient({
+//   url: process.env.REDIS_URL, // ✅ Only use URL (Upstash gives this)
+//   socket: {
+//     tls: true,                 // ✅ Required for Upstash
+//     rejectUnauthorized: false, // ✅ Prevent SSL issues
+//   },
+// });
+
+// // Connect safely
+// redisClient.on("error", (err) => {
+//   console.error("❌ Redis Client Error:", err);
+// });
+
+// await redisClient.connect();
+
+// // ---------------- Shared Handler ----------------
+// export const rateLimitHandler = (req, res, _next, options) => {
+//   console.warn(`⚠️ Rate limit hit: ${req.ip} on ${req.originalUrl}`);
+//   res.status(options.statusCode).json({
+//     success: false,
+//     message: options.message,
+//   });
+// };
+
+// // ---------------- IP-based limiter ----------------
+// export const ipLimiter = rateLimit({
+//   store: new RedisStore({
+//     sendCommand: (...args) => redisClient.sendCommand(args),
+//   }),
+//   keyGenerator: ipKeyGenerator,
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 100,
+//   message: "Too many requests from this IP. Try again in 15 minutes.",
+//   standardHeaders: true,
+//   legacyHeaders: false,
+//   handler: rateLimitHandler,
+// });
+
+// // ---------------- Ultra-strict limiter ----------------
+// export const ultraStrictLimiter = rateLimit({
+//   store: new RedisStore({
+//     sendCommand: (...args) => redisClient.sendCommand(args),
+//   }),
+//   keyGenerator: ipKeyGenerator,
+//   windowMs: 5 * 60 * 1000, // 5 minutes
+//   max: 5,
+//   message: "Too many attempts. Please wait 5 minutes and try again.",
+//   standardHeaders: true,
+//   legacyHeaders: false,
+//   handler: rateLimitHandler,
+// });
+
+// // ---------------- User-based limiter ----------------
+// export const userLimiter = rateLimit({
+//   store: new RedisStore({
+//     sendCommand: (...args) => redisClient.sendCommand(args),
+//   }),
+//   keyGenerator: (req) => req.user?.id || ipKeyGenerator(req),
+//   windowMs: 10 * 60 * 1000, // 10 minutes
+//   max: 50,
+//   message: "Too many requests from your account. Try again later.",
+//   standardHeaders: true,
+//   legacyHeaders: false,
+//   handler: rateLimitHandler,
+// });
+
 
 
 // Ensure Redis connection errors are handled
