@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authorizeRoles, isLoggedIn } from '../middlewares/auth.middleware.js';
 import { addComment, createPost, deleteComment, deletePost, getAllPosts, getCommentsForPost, getPostbyid, updatePost, updateComment } from '../controllers/post.controller.js';
 import upload from '../middlewares/multer.middleware.js';
-import { userLimiter } from '../middlewares/ratelimiter.middleware.js';
+import { userLimiter } from '../middlewares/rateLimiter.middleware.js';
 
 const router = Router();
 

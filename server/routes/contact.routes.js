@@ -1,6 +1,6 @@
 import express from 'express';
 import { sendContact } from '../controllers/contact.controller.js';
-import { userLimiter } from '../middlewares/ratelimiter.middleware.js';
+import { userLimiter } from '../middlewares/rateLimiter.middleware.js';
 
 const router = express.Router();
 

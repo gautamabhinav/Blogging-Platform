@@ -12,7 +12,8 @@ import {
 } from "../controllers/user.controller.js";
 import { isLoggedIn } from "../middlewares/auth.middleware.js";
 import upload from "../middlewares/multer.middleware.js";
-import {  ultraStrictLimiter, userLimiter } from "../middlewares/ratelimiter.middleware.js";
+import { ultraStrictLimiter } from "../middlewares/rateLimiter.middleware.js";
+// import {  ultraStrictLimiter, userLimiter } from "../middlewares/ratelimiter.middleware.js";
 
 const router = Router();
 

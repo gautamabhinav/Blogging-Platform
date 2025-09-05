@@ -7,7 +7,7 @@ import { Router } from "express";
 import { getAllCategory, addCategory, updateCategory,deleteCategory, showCategory } from "../controllers/category.controller.js";
 import { isLoggedIn } from "../middlewares/auth.middleware.js";
 import upload from "../middlewares/multer.middleware.js";
-import { userLimiter } from "../middlewares/ratelimiter.middleware.js";
+import { userLimiter } from "../middlewares/rateLimiter.middleware.js";
 
 // const CategoryRoute = express.Router()
 
