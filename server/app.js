@@ -27,12 +27,28 @@ const app = express();
 // ------------------- Middlewares -------------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// app.use(
+//   cors({
+//     origin: [process.env.FRONTEND_URL, "http://localhost:5173"],
+//     credentials: true,
+//   })
+// );
+
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL, // keep for development / preview
+];
+
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL, "http://localhost:5173"],
+    origin: allowedOrigins,
     credentials: true,
   })
 );
+
+
 app.use(morgan("dev"));
 app.use(cookieParser());
 
@@ -44,14 +60,13 @@ const __dirname = path.dirname(__filename);
 
 // Serve frontend in production
 if (process.env.NODE_ENV === "production") {
-  const frontendPath = path.join(__dirname, "../client/dist");
+  const frontendPath = path.resolve(__dirname, "../client/dist");
   app.use(express.static(frontendPath));
 
   app.get("*", (req, res) => {
     res.sendFile(path.resolve(frontendPath, "index.html"));
   });
 }
-
 
 
 
@@ -73,11 +88,11 @@ app.use("/api/v1/category", categoryRoutes);
 
 // const path = require("path");
 
-app.use(express.static(path.join(__dirname, "../client/dist")));
+// app.use(express.static(path.join(__dirname, "../client/dist")));
 
-app.use( (_req, res) => {
-  res.sendFile(path.resolve(__dirname, "../client/dist", "index.html"));
-});
+// app.use( (_req, res) => {
+//   res.sendFile(path.resolve(__dirname, "../client/dist", "index.html"));
+// });
 
 // ------------------- Socket.IO -------------------
 // const server = http.createServer(app);
