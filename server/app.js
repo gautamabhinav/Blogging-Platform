@@ -37,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 const allowedOrigins = [
-  "http://localhost:5173",
+  // "http://localhost:5173",
   process.env.FRONTEND_URL, // keep for development / preview
 ];
 
@@ -63,7 +63,7 @@ if (process.env.NODE_ENV === "production") {
   const frontendPath = path.resolve(__dirname, "../client/dist");
   app.use(express.static(frontendPath));
 
-  app.get("*", (req, res) => {
+  app.get("*", (_req, res) => {
     res.sendFile(path.resolve(frontendPath, "index.html"));
   });
 }

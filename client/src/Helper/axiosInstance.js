@@ -8,8 +8,10 @@ import axios from "axios";
 // After (with proxy in place): Development mode:
 // const BASE_URL = "/api/v1"; -> devlopment mode
 
-// Production mode:
-const BASE_URL = "/api/v1";  
+// Normal mode:
+// const BASE_URL = "/api/v1"; 
+
+const BASE_URL = "https://blogging-platform-hlwi.onrender.com/api/v1";
 
 // go to vite config .js to add proxy: https://blogging-platform-hlwi.onrender.com in place of localhost:5014
 
